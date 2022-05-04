@@ -1,0 +1,469 @@
+
+#Using the Swiss dataset carry out a k-means cluster analysis on the data. Justify your choice of k and detail how this choice was made.
+Investigate and describe the clusters
+pairs(swiss)
+
+help(swiss)
+apply(swiss,2,mean)
+
+##        Fertility      Agriculture      Examination        Education 
+##         70.14255         50.65957         16.48936         10.97872 
+##         Catholic Infant.Mortality 
+##         41.14383         19.94255
+
+
+
+apply(swiss,2,sd)
+
+##        Fertility      Agriculture      Examination        Education 
+##        12.491697        22.711218         7.977883         9.615407 
+##         Catholic Infant.Mortality 
+##        41.704850         2.912697
+
+
+
+summary(swiss)
+
+
+##    Fertility      Agriculture     Examination      Education    
+##  Min.   :35.00   Min.   : 1.20   Min.   : 3.00   Min.   : 1.00  
+##  1st Qu.:64.70   1st Qu.:35.90   1st Qu.:12.00   1st Qu.: 6.00  
+##  Median :70.40   Median :54.10   Median :16.00   Median : 8.00  
+##  Mean   :70.14   Mean   :50.66   Mean   :16.49   Mean   :10.98  
+##  3rd Qu.:78.45   3rd Qu.:67.65   3rd Qu.:22.00   3rd Qu.:12.00  
+##  Max.   :92.50   Max.   :89.70   Max.   :37.00   Max.   :53.00  
+##     Catholic       Infant.Mortality
+##  Min.   :  2.150   Min.   :10.80   
+##  1st Qu.:  5.195   1st Qu.:18.15   
+##  Median : 15.140   Median :20.00   
+##  Mean   : 41.144   Mean   :19.94   
+##  3rd Qu.: 93.125   3rd Qu.:21.70   
+##  Max.   :100.000   Max.   :26.60
+
+
+
+
+
+```
+
+
+```{R}
+
+swiss_sd<-swiss
+colnames(swiss_sd)<-colnames(swiss)
+length(which(is.na(swiss_sd)==TRUE))
+
+## [1] 0
+
+
+#swiss_sd <- na.omit(swiss_sd) # listwise deletion of missing
+swiss_sd <- scale(swiss_sd) #
+str(swiss_sd) #jsut showing the structure after using scale
+
+##  num [1:47, 1:6] 0.805 1.037 1.79 1.253 0.541 ...
+##  - attr(*, "dimnames")=List of 2
+##   ..$ : chr [1:47] "Courtelary" "Delemont" "Franches-Mnt" "Moutier" ...
+##   ..$ : chr [1:6] "Fertility" "Agriculture" "Examination" "Education" ...
+##  - attr(*, "scaled:center")= Named num [1:6] 70.1 50.7 16.5 11 41.1 ...
+##   ..- attr(*, "names")= chr [1:6] "Fertility" "Agriculture" "Examination" "Education" ...
+##  - attr(*, "scaled:scale")= Named num [1:6] 12.49 22.71 7.98 9.62 41.7 ...
+##   ..- attr(*, "names")= chr [1:6] "Fertility" "Agriculture" "Examination" "Education" ...
+
+
+
+head(swiss_sd[1]) 
+
+## [1] 0.8051305
+
+round(apply(as.matrix(swiss_sd,47,6),2,mean),2) #mean of each variable is 0
+
+##        Fertility      Agriculture      Examination        Education 
+##                0                0                0                0 
+##         Catholic Infant.Mortality 
+##                0                0
+
+
+
+apply(as.matrix(swiss_sd,47,6),2,sd) #sd of each variable is 1
+
+##        Fertility      Agriculture      Examination        Education 
+##                1                1                1                1 
+##         Catholic Infant.Mortality 
+##                1                1
+
+
+```
+
+
+```{R}
+
+wss <- (nrow(swiss_sd)-1)*sum(apply(swiss_sd,2,var))
+for (i in 2:15){
+  wss[i] <- sum(kmeans(swiss_sd, centers=i,nstart=5)$withinss)
+}  
+
+plot(1:15, wss, type="b", xlab="Number of Clusters",
+     ylab="Within Clusters Sum of Squares")
+
+
+```
+
+
+Number of Clusters
+
+```{R}
+
+k_3_swiss<-kmeans(swiss_sd,3,nstart=5)
+
+pairs(swiss,col=k_3_swiss$cluster,
+      pch=k_3_swiss$cluster)
+
+```
+
+```{R}
+
+print(k_3_swiss)
+## K-means clustering with 3 clusters of sizes 23, 16, 8
+## 
+## Cluster means:
+##     Fertility Agriculture Examination  Education   Catholic Infant.Mortality
+## 1 -0.09146501  0.01020332   0.1294049 -0.2871779 -0.7980284      -0.06984001
+## 2  0.83314915  0.65426591  -0.8839264 -0.4527862  1.3189394       0.28579935
+## 3 -1.40333639 -1.33786636   1.3958136  1.7312087 -0.3435471      -0.37080867
+## 
+## Clustering vector:
+##   Courtelary     Delemont Franches-Mnt      Moutier   Neuveville   Porrentruy 
+##            1            2            2            1            1            2 
+##        Broye        Glane      Gruyere       Sarine      Veveyse        Aigle 
+##            2            2            2            2            2            1 
+##      Aubonne     Avenches     Cossonay    Echallens     Grandson     Lausanne 
+##            1            1            1            1            1            3 
+##    La Vallee       Lavaux       Morges       Moudon        Nyone         Orbe 
+##            3            1            1            1            1            1 
+##         Oron      Payerne Paysd'enhaut        Rolle        Vevey      Yverdon 
+##            1            1            1            1            3            1 
+##      Conthey    Entremont       Herens     Martigwy      Monthey   St Maurice 
+##            2            2            2            2            2            2 
+##       Sierre         Sion       Boudry La Chauxdfnd     Le Locle    Neuchatel 
+##            2            2            1            3            1            3 
+##   Val de Ruz ValdeTravers V. De Geneve  Rive Droite  Rive Gauche 
+##            1            1            3            3            3 
+## 
+## Within cluster sum of squares by cluster:
+## [1] 45.23153 41.67497 37.29864
+##  (between_SS / total_SS =  55.0 %)
+## 
+## Available components:
+## 
+## [1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+## [6] "betweenss"    "size"         "iter"         "ifault"
+k_3_swiss$centers
+##     Fertility Agriculture Examination  Education   Catholic Infant.Mortality
+## 1 -0.09146501  0.01020332   0.1294049 -0.2871779 -0.7980284      -0.06984001
+## 2  0.83314915  0.65426591  -0.8839264 -0.4527862  1.3189394       0.28579935
+## 3 -1.40333639 -1.33786636   1.3958136  1.7312087 -0.3435471      -0.37080867
+
+
+#What is the most suitable measure of proximity to use to compare hierarchical clustering and k-means clustering
+
+# Ward's D Hierarchical Clustering as uses the Sums of Square
+#error to measure the distance between clusters
+#k-means uses within sums of squares very similar.
+
+
+
+
+```
+
+#Carry out a hierarchical clustering using the bottom up approach using the proximity measure selected in part b on the data. 
+#Create a dendrogram that highlights the number of clusters you think are appropriate.
+
+```{R}
+d <- dist(swiss_sd, method = "euclidean") #create distance matrix
+dim(swiss)
+## [1] 47  6
+str(d)
+##  'dist' num [1:1081] 2.49 2.92 1.45 1.38 2.76 ...
+##  - attr(*, "Size")= int 47
+##  - attr(*, "Labels")= chr [1:47] "Courtelary" "Delemont" "Franches-Mnt" "Moutier" ...
+##  - attr(*, "Diag")= logi FALSE
+##  - attr(*, "Upper")= logi FALSE
+##  - attr(*, "method")= chr "euclidean"
+##  - attr(*, "call")= language dist(x = swiss_sd, method = "euclidean")
+head(d)
+## [1] 2.485652 2.923030 1.449636 1.380745 2.758802 3.168217
+fit <- hclust(d, method="ward.D") 
+str(fit)
+## List of 7
+##  $ merge      : int [1:46, 1:2] -8 -17 -22 -12 -32 -13 -7 -24 -41 -14 ...
+##  $ height     : num [1:46] 0.514 0.569 0.592 0.594 0.713 ...
+##  $ order      : int [1:47] 36 32 34 37 31 33 2 3 38 9 ...
+##  $ labels     : chr [1:47] "Courtelary" "Delemont" "Franches-Mnt" "Moutier" ...
+##  $ method     : chr "ward.D"
+##  $ call       : language hclust(d = d, method = "ward.D")
+##  $ dist.method: chr "euclidean"
+##  - attr(*, "class")= chr "hclust"
+plot(fit)
+rect.hclust(fit, k=5, border="red")
+
+
+groups_3 <- cutree(fit, k=3)  #unmerges last
+#two to cut into 3 clusters
+rect.hclust(fit, k=3, border="red")
+
+
+
+
+
+
+```
+
+#Create a plot to compare it to the k-means clustering analysis? How does it compare? 
+
+
+```{R}
+
+pairs(swiss,col=groups_3,pch=groups_3)
+
+
+pairs(swiss,col=k_3_swiss$cluster,pch=k_3_swiss$cluster)
+
+
+#cluster 1(b) from kmeans is similar to cluster 3(g) from hclust
+#cluster 3(g) from kmeans is similar to cluster 2(r) from hclust
+#cluster 2(r) from kmeans is similar to cluster 1(b) from hclust
+
+
+
+
+
+```
+
+#Create the cluster means from the hierarchical clustering and compare these to the output from the k-means centroids.
+
+```{R}
+
+table(k_3_swiss$cluster)
+## 
+##  1  2  3 
+## 23 16  8
+table(groups_3)
+## groups_3
+##  1  2  3 
+## 24 16  7
+# very similar bar one data point
+
+clust.centroid = function(i, dat, clusters) {
+  ind = (clusters == i)
+  apply(dat[ind,],2,mean)
+}
+
+
+clust.centroid(1,swiss_sd, groups_3)
+##        Fertility      Agriculture      Examination        Education 
+##      -0.10247232      -0.06903671       0.18935327      -0.27511992 
+##         Catholic Infant.Mortality 
+##      -0.79210602      -0.05895563
+clust.centroid(2,swiss_sd, groups_3)
+##        Fertility      Agriculture      Examination        Education 
+##        0.8331491        0.6542659       -0.8839264       -0.4527862 
+##         Catholic Infant.Mortality 
+##        1.3189394        0.2857993
+clust.centroid(3,swiss_sd, groups_3)
+##        Fertility      Agriculture      Examination        Education 
+##       -1.5530072       -1.2587676        1.3711920        1.9782081 
+##         Catholic Infant.Mortality 
+##       -0.2989265       -0.4511221
+#create for loop instead of sapply
+output<-c()
+for( i in 1:length(table(groups_3))){
+  output<-rbind(output,
+                clust.centroid(i,swiss_sd, groups_3))
+}
+output
+##       Fertility Agriculture Examination  Education   Catholic Infant.Mortality
+## [1,] -0.1024723 -0.06903671   0.1893533 -0.2751199 -0.7921060      -0.05895563
+## [2,]  0.8331491  0.65426591  -0.8839264 -0.4527862  1.3189394       0.28579935
+## [3,] -1.5530072 -1.25876763   1.3711920  1.9782081 -0.2989265      -0.45112207
+#so one line code to run from clust.centroid function
+t(sapply(unique(groups_3),clust.centroid,swiss_sd, groups_3))
+##       Fertility Agriculture Examination  Education   Catholic Infant.Mortality
+## [1,] -0.1024723 -0.06903671   0.1893533 -0.2751199 -0.7921060      -0.05895563
+## [2,]  0.8331491  0.65426591  -0.8839264 -0.4527862  1.3189394       0.28579935
+## [3,] -1.5530072 -1.25876763   1.3711920  1.9782081 -0.2989265      -0.45112207
+k_3_swiss$centers
+##     Fertility Agriculture Examination  Education   Catholic Infant.Mortality
+## 1 -0.09146501  0.01020332   0.1294049 -0.2871779 -0.7980284      -0.06984001
+## 2  0.83314915  0.65426591  -0.8839264 -0.4527862  1.3189394       0.28579935
+## 3 -1.40333639 -1.33786636   1.3958136  1.7312087 -0.3435471      -0.37080867
+print(k_3_swiss)
+## K-means clustering with 3 clusters of sizes 23, 16, 8
+## 
+## Cluster means:
+##     Fertility Agriculture Examination  Education   Catholic Infant.Mortality
+## 1 -0.09146501  0.01020332   0.1294049 -0.2871779 -0.7980284      -0.06984001
+## 2  0.83314915  0.65426591  -0.8839264 -0.4527862  1.3189394       0.28579935
+## 3 -1.40333639 -1.33786636   1.3958136  1.7312087 -0.3435471      -0.37080867
+## 
+## Clustering vector:
+##   Courtelary     Delemont Franches-Mnt      Moutier   Neuveville   Porrentruy 
+##            1            2            2            1            1            2 
+##        Broye        Glane      Gruyere       Sarine      Veveyse        Aigle 
+##            2            2            2            2            2            1 
+##      Aubonne     Avenches     Cossonay    Echallens     Grandson     Lausanne 
+##            1            1            1            1            1            3 
+##    La Vallee       Lavaux       Morges       Moudon        Nyone         Orbe 
+##            3            1            1            1            1            1 
+##         Oron      Payerne Paysd'enhaut        Rolle        Vevey      Yverdon 
+##            1            1            1            1            3            1 
+##      Conthey    Entremont       Herens     Martigwy      Monthey   St Maurice 
+##            2            2            2            2            2            2 
+##       Sierre         Sion       Boudry La Chauxdfnd     Le Locle    Neuchatel 
+##            2            2            1            3            1            3 
+##   Val de Ruz ValdeTravers V. De Geneve  Rive Droite  Rive Gauche 
+##            1            1            3            3            3 
+## 
+## Within cluster sum of squares by cluster:
+## [1] 45.23153 41.67497 37.29864
+##  (between_SS / total_SS =  55.0 %)
+## 
+## Available components:
+## 
+## [1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+## [6] "betweenss"    "size"         "iter"         "ifault"
+#see cluster 3 in kmeans is the same as cluster 2 in hclust describes
+#catholic group with high fertility, high agri, low exam, rel low edu
+
+
+print(k_3_swiss)
+## K-means clustering with 3 clusters of sizes 23, 16, 8
+## 
+## Cluster means:
+##     Fertility Agriculture Examination  Education   Catholic Infant.Mortality
+## 1 -0.09146501  0.01020332   0.1294049 -0.2871779 -0.7980284      -0.06984001
+## 2  0.83314915  0.65426591  -0.8839264 -0.4527862  1.3189394       0.28579935
+## 3 -1.40333639 -1.33786636   1.3958136  1.7312087 -0.3435471      -0.37080867
+## 
+## Clustering vector:
+##   Courtelary     Delemont Franches-Mnt      Moutier   Neuveville   Porrentruy 
+##            1            2            2            1            1            2 
+##        Broye        Glane      Gruyere       Sarine      Veveyse        Aigle 
+##            2            2            2            2            2            1 
+##      Aubonne     Avenches     Cossonay    Echallens     Grandson     Lausanne 
+##            1            1            1            1            1            3 
+##    La Vallee       Lavaux       Morges       Moudon        Nyone         Orbe 
+##            3            1            1            1            1            1 
+##         Oron      Payerne Paysd'enhaut        Rolle        Vevey      Yverdon 
+##            1            1            1            1            3            1 
+##      Conthey    Entremont       Herens     Martigwy      Monthey   St Maurice 
+##            2            2            2            2            2            2 
+##       Sierre         Sion       Boudry La Chauxdfnd     Le Locle    Neuchatel 
+##            2            2            1            3            1            3 
+##   Val de Ruz ValdeTravers V. De Geneve  Rive Droite  Rive Gauche 
+##            1            1            3            3            3 
+## 
+## Within cluster sum of squares by cluster:
+## [1] 45.23153 41.67497 37.29864
+##  (between_SS / total_SS =  55.0 %)
+## 
+## Available components:
+## 
+## [1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+## [6] "betweenss"    "size"         "iter"         "ifault"
+#find within sum squares of each cluster
+wss_cluster = function(i, dat, clusters) {
+  ind = (clusters == i)
+  (nrow(dat[ind,])-1)*sum(apply(dat[ind,],2,var))
+}
+
+k_3_swiss$withinss
+## [1] 45.23153 41.67497 37.29864
+t(sapply(unique(groups_3),wss_cluster,swiss_sd, groups_3))
+##          [,1]     [,2]     [,3]
+## [1,] 50.91321 41.67497 31.77065
+print(k_3_swiss)
+## K-means clustering with 3 clusters of sizes 23, 16, 8
+## 
+## Cluster means:
+##     Fertility Agriculture Examination  Education   Catholic Infant.Mortality
+## 1 -0.09146501  0.01020332   0.1294049 -0.2871779 -0.7980284      -0.06984001
+## 2  0.83314915  0.65426591  -0.8839264 -0.4527862  1.3189394       0.28579935
+## 3 -1.40333639 -1.33786636   1.3958136  1.7312087 -0.3435471      -0.37080867
+## 
+## Clustering vector:
+##   Courtelary     Delemont Franches-Mnt      Moutier   Neuveville   Porrentruy 
+##            1            2            2            1            1            2 
+##        Broye        Glane      Gruyere       Sarine      Veveyse        Aigle 
+##            2            2            2            2            2            1 
+##      Aubonne     Avenches     Cossonay    Echallens     Grandson     Lausanne 
+##            1            1            1            1            1            3 
+##    La Vallee       Lavaux       Morges       Moudon        Nyone         Orbe 
+##            3            1            1            1            1            1 
+##         Oron      Payerne Paysd'enhaut        Rolle        Vevey      Yverdon 
+##            1            1            1            1            3            1 
+##      Conthey    Entremont       Herens     Martigwy      Monthey   St Maurice 
+##            2            2            2            2            2            2 
+##       Sierre         Sion       Boudry La Chauxdfnd     Le Locle    Neuchatel 
+##            2            2            1            3            1            3 
+##   Val de Ruz ValdeTravers V. De Geneve  Rive Droite  Rive Gauche 
+##            1            1            3            3            3 
+## 
+## Within cluster sum of squares by cluster:
+## [1] 45.23153 41.67497 37.29864
+##  (between_SS / total_SS =  55.0 %)
+## 
+## Available components:
+## 
+## [1] "cluster"      "centers"      "totss"        "withinss"     "tot.withinss"
+## [6] "betweenss"    "size"         "iter"         "ifault"
+#explained SS squares
+1-sum(k_3_swiss$withinss)/k_3_swiss$totss #kmeans explained
+## [1] 0.5499813
+#total within sums of squares
+tot_wss_hclust<-sum(t(sapply(unique(groups_3),
+                             wss_cluster,swiss_sd, 
+                             groups_3)))
+#explained SS squares
+1-(tot_wss_hclust)/wss[1]
+## [1] 0.5494245
+# here wss[1] is the within sum of squares
+#for the whole data as one giant cluster
+
+
+###
+ 
+fit_single <- hclust(d, method="single") 
+plot(fit_single)
+
+
+
+#doesn't perform well with outliers
+
+fit_complete <- hclust(d, method="complete") 
+plot(fit_complete)
+rect.hclust(fit_complete,2)
+
+
+
+fit_avg <- hclust(d, method="average") 
+plot(fit_avg)
+
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
